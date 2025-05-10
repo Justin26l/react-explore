@@ -10,7 +10,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-atr-light antialiased flex flex-col min-h-screen">
+      <body className="bg-bw-blue font-atr-light antialiased flex flex-col min-h-screen">
         <Navbar />
         <main className="flex-grow container mx-auto p-8">{children}</main>
         <Footer />
