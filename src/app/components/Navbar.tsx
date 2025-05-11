@@ -1,16 +1,31 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { useSession, signIn, signOut } from "next-auth/react";
+import userStoreInstance  from './../store/user';
 
 export default function Navbar() {
+
+  const { data: session } = useSession();
+
+  const hardcodedUserid = 'user1';
+
+  const userStore = userStoreInstance((state) => state); // Correct usage
+  userStore.fetchDataBase(hardcodedUserid);
+  userStore.fetchLocalStorage(hardcodedUserid);
+
+  const userCollection = userStoreInstance((state) => state.userCollection);
+  const userState = userStoreInstance((state) => state.userState);
+
   const [timeLeft, setTimeLeft] = useState({ days: 29, hours: 23, minutes: 59, seconds: 59 });
 
+
+
   useEffect(() => {
-    const targetDate = new Date().getTime() + 30 * 24 * 60 * 60 * 1000; // 3 days from now
 
     const interval = setInterval(() => {
       const now = new Date().getTime();
-      const difference = targetDate - now;
+      const difference = userCollection.promotionEnd - now;
 
       if (difference <= 0) {
         clearInterval(interval);
@@ -23,12 +38,11 @@ export default function Navbar() {
       const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
-      const newTimeLeft = { days, hours, minutes, seconds };
-      setTimeLeft(newTimeLeft);
+      setTimeLeft({ days, hours, minutes, seconds });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [userCollection]); // Add user.promotionEnd as a dependency
 
   return (
     <nav className="bg-bw-deepblue text-white px-4 h-max-[80px]">
@@ -60,7 +74,30 @@ export default function Navbar() {
           </div>
         </div>
 
-        <button className='bg-gradient-to-b from-amber-500 to-bw-orange hover:from-amber-400 text-white font-bold py-2 px-4 rounded-full transition duration-150 ease-in-out'>Login</button>
+        {/* <button className='bg-gradient-to-b from-amber-500 to-bw-orange hover:from-amber-400 text-white font-bold py-2 px-4 rounded-full transition duration-150 ease-in-out'>
+          Login
+        </button> */}
+
+        
+        {/* Login/Logout Button */}
+        {session ? (
+          <div className="flex items-center gap-4">
+            <p>Welcome, {session.user?.name}</p>
+            <button
+              onClick={() => signOut()}
+              className="bg-gradient-to-b from-amber-500 to-bw-orange hover:from-amber-400 text-white font-bold py-2 px-4 rounded-full transition duration-150 ease-in-out"
+            >
+              Logout
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => signIn("google")}
+            className="bg-gradient-to-b from-amber-500 to-bw-orange hover:from-amber-400 text-white font-bold py-2 px-4 rounded-full transition duration-150 ease-in-out"
+          >
+            Login
+          </button>
+        )}
       </div>
     </nav>
   );
